@@ -1,0 +1,20 @@
+Container opbouw
+
+# MYSQL container met alias opbouwen
+
+docker run -d --name mysql --network webapp --network-alias mysql -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=todos mysql
+
+# PHP myadmin container in hetzelfde Docker netwerk
+
+docker run --name myadmin -d --network webapp --link mysql:db -p 8080:80 phpmyadmin
+
+# PHP Dockerfile maken (denk om de map "web" met hierin je website!!)
+
+FROM php:8.0-apache
+COPY ./web/ /var/www/html/
+RUN docker-php-ext-install pdo pdo_mysql
+
+# PHP container bouwen en runnen
+
+docker build -t my-php .
+docker run -dit --name php --network webapp -p 80:80 my-php
