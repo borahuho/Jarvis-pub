@@ -1,0 +1,33 @@
+---
+- hosts: pve3
+  gather_facts: false
+  become: yes
+  tasks:
+
+    - name: Get next free vmid
+      shell: pvesh get /cluster/nextid
+      register: vmid
+
+    - name: create vm with first available vmid
+      shell: |
+        qm clone 1000 {{ vmid.stdout }} --full 0 --name Ubuntu-server-{{ vmid.stdout }} --target pve3
+
+    - name: pause between qm clone and start to avoid unexpected issues
+      pause:
+        seconds: 30
+
+    #default is DHCP from cloud-init template, un # if you want a static-IP same as vmid
+    #- name: Set IP based on vmid
+      #shell: |
+        #qm set {{ vmid.stdout }} --ipconfig0 ip=192.168.3.{{ vmid.stdout }}/24,gw=192.168.3.1
+
+    - name: start the new vm
+      shell: qm start {{ vmid.stdout }}
+
+    - name: wait to make sure cloud-init process has completed
+      pause:
+        seconds: 120
+
+    - name: reboot vm to register cloud-init stuff in dns
+      shell: qm reset {{ vmid.stdout }}
+

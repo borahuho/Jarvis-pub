@@ -1,0 +1,20 @@
+---
+- hosts: pve3
+  gather_facts: false
+  become: yes
+  vars_prompt:
+    - name: destroy_vm
+      prompt: "whitch vmid do you want to destroy?"
+      private: no
+
+
+  tasks:
+    - name: shutdown if active vm "{{ destroy_vm }}"
+      shell: |
+        qm shutdown {{ destroy_vm }} && qm wait {{ destroy_vm }}
+
+
+    - name: Destroy "{{ destroy_vm }}" vm
+      shell: |
+        qm destroy {{ destroy_vm }} --purge
+
